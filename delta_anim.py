@@ -9,13 +9,12 @@ def apply_deltas(bb, target_bone, delta_track, target_track, sce):
 	offset_mat					= bb.matrix_basis.copy()
 	ioffset_mat					= offset_mat.copy()
 	ioffset_mat.invert			()
-	print						("offset_mat:\n{0}".format(offset_mat))
+	#print						("offset_mat:\n{0}".format(offset_mat))
 
 	target_track.is_solo		= True
 	sce.frame_set				(0)
 	delta						= bb.matrix_basis * ioffset_mat
 	delta.invert				()
-
 
 	keyframes					= set()
 
@@ -23,17 +22,17 @@ def apply_deltas(bb, target_bone, delta_track, target_track, sce):
 		for k in ch.keyframe_points:
 			keyframes.add		(int(k.co[0]))
 
-	print						("keyframes:\n{0}".format(keyframes))
+	#print						("keyframes:\n{0}".format(keyframes))
 
 	new_mats					= dict()
 	for k in keyframes:
 		sce.frame_set			(k)
 		new_mats[k]				= bb.matrix_basis * delta
 
-		print					("frame: {0}".format(k))
-		print					("old_mat:\n{0}".format(bb.matrix_basis))
-		print					("delta:\n{0}".format(delta))
-		print					("new_mat:\n{0}".format(new_mats[k]))
+		#print					("frame: {0}".format(k))
+		#print					("old_mat:\n{0}".format(bb.matrix_basis))
+		#print					("delta:\n{0}".format(delta))
+		#print					("new_mat:\n{0}".format(new_mats[k]))
 
 	for ch in target_bone.channels:
 		op_word					= ch.data_path.rsplit(".", 1)[1]
