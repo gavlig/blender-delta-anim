@@ -135,6 +135,9 @@ class apply_delta(bpy.types.Operator):
 			# curves get messed up
 			ch.update			()
 
+		target_track.is_solo	= False
+		delta_track.is_solo		= False
+
 	#
 	#
 	###
