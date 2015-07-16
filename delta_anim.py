@@ -3,16 +3,16 @@ import bpy, math
 #
 #
 ###
-def apply_deltas(bb, target_bone, delta_track, target_track, sce):
+def apply_deltas(bb, reference_frame_id, target_bone, delta_track, target_track, sce):
 	delta_track.is_solo			= True
-	sce.frame_set				(0)
+	sce.frame_set				(reference_frame_id)
 	offset_mat					= bb.matrix_basis.copy()
 	ioffset_mat					= offset_mat.copy()
 	ioffset_mat.invert			()
 	#print						("offset_mat:\n{0}".format(offset_mat))
 
 	target_track.is_solo		= True
-	sce.frame_set				(0)
+	sce.frame_set				(reference_frame_id)
 	delta						= bb.matrix_basis * ioffset_mat
 	delta.invert				()
 
@@ -101,13 +101,20 @@ def calculate():
 	for b in delta_bones:
 		delta_bone_names.append	(b.name)
 
+	# getting reference frame number (it is assumed that anim is 1 frame long)
+	ch							= delta_bones[0].channels[0]
+	reference_frame_id			= ch.keyframe_points[0].co[0]
+	if len(ch.keyframe_points) > 1:
+		print					("Delta animation should be 1 frame long")
+		return
+
 	sce							= bpy.context.scene
 	ob							= bpy.context.object
 
 	baked_bones					= list( filter(lambda x: x.name in delta_bone_names, ob.pose.bones) )
 	for bb in baked_bones:
 		target_bone				= next( filter(lambda x: x.name == bb.name, target_bones) )
-		apply_deltas			(bb, target_bone, delta_track, target_track, sce)
+		apply_deltas			(bb, reference_frame_id, target_bone, delta_track, target_track, sce)
 
 
 	print						("yay!")
