@@ -149,9 +149,6 @@ class apply_delta(bpy.types.Operator):
 ########################################
 
 
-#
-#    Menu in window region, material context
-#
 class NLA_panel(bpy.types.Panel):
 	bl_label = "Delta Animation"
 	bl_space_type = "NLA_EDITOR"
