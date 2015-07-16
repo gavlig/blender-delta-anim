@@ -150,12 +150,12 @@ class apply_delta(bpy.types.Operator):
 
 
 class NLA_panel(bpy.types.Panel):
-	bl_label = "Delta Animation"
-	bl_space_type = "NLA_EDITOR"
-	bl_region_type = "UI"
+	bl_label					= "Delta Animation"
+	bl_space_type				= "NLA_EDITOR"
+	bl_region_type				= "UI"
 
 	def draw(self, context):
-		self.layout.operator("animation.apply_delta", text='Apply')
+		self.layout.operator	("animation.apply_delta", text="Apply")
 
 def register():
 	bpy.utils.register_module	(__name__)
