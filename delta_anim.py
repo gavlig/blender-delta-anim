@@ -35,15 +35,22 @@ class apply_delta(bpy.types.Operator):
 		target_action			= 0
 
 		for track in armature.animation_data.nla_tracks:
+			if 0 == len(track.strips) or not track.select:
+				continue;
+
 			strip				= track.strips[0];
 			action				= strip.action;
 
-			if "delta" == strip.name or "delta" == action.name:
+			if "delta" == track.name or "delta" == strip.name or "delta" == action.name:
 				delta_action	= action
 				delta_track		= track
-			else:
+			elif "delta_target" == track.name or "delta_target" == strip.name:
 				target_action	= action
 				target_track	= track
+
+		if 0 == target_track or 0 == delta_track:
+			self.report			({'ERROR'}, "Make sure you have tracks with names \"delta\" and \"delta_target\" and they are selected in NLA!")
+			return
 
 		print					("target_action: %s" % (target_action.name))
 		print					("delta_action: %s" % (delta_action.name))
