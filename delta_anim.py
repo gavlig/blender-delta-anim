@@ -1,4 +1,4 @@
-import bpy, math
+import bpy, math, copy
 
 bl_info = {
 	"name": "Delta Animation Calculator (from NLA editor)",
@@ -6,7 +6,7 @@ bl_info = {
 	"version": (2015, 7, 16),
 	"blender": (2, 7, 4),
 	"location": "Space > Apply Delta Animation",
-	"description": "Apply \"Delta\" animation made of one frame containing offset that needed to be applyed to all frames in target animation",
+	"description": "Apply \"Delta\" animation made of one frame containing offset that will to be applied to all frames in target animation",
 	"warning": "",
 	"wiki_url": "",
 	"tracker_url": "",
@@ -20,7 +20,7 @@ class apply_delta(bpy.types.Operator):
 	#
 	###
 	def main(self):
-		print					("\n\nCALCULATING DELTAS BITCHES!")
+		print					("\n\nSTARTED DELTA CALCULATION\n\n")
 		armature				= bpy.context.selected_objects[0]
 
 		if len(bpy.context.selected_objects) > 1 or "ARMATURE" != armature.type:
@@ -33,18 +33,27 @@ class apply_delta(bpy.types.Operator):
 		delta_action			= 0
 		target_track			= 0
 		target_action			= 0
+		
+		delta_nm				= "delta"
+		delta_tgt_nm			= "delta_target"
 
 		for track in armature.animation_data.nla_tracks:
-			if 0 == len(track.strips) or not track.select:
-				continue;
-
 			strip				= track.strips[0];
 			action				= strip.action;
+			
+			print				("checking action %s of a track which has %d strips" % (action.name, len(track.strips)))
+			print				("strip name: %s track name: %s" % (strip.name, track.name))
+			
+			if 0 == len(track.strips) or not strip.select:
+				print			("skipped track because no strips(%d) or not selected track(%d)" % (0 == len(track.strips), (not track.select)))
+				continue;
 
-			if "delta" == track.name or "delta" == strip.name or "delta" == action.name:
+			any_name			= [track.name, strip.name, action.name]
+
+			if delta_nm in any_name:
 				delta_action	= action
 				delta_track		= track
-			elif "delta_target" == track.name or "delta_target" == strip.name:
+			elif delta_tgt_nm in any_name:
 				target_action	= action
 				target_track	= track
 
@@ -61,7 +70,7 @@ class apply_delta(bpy.types.Operator):
 
 		delta_bone_names		= []
 		for b in delta_bones:
-			delta_bone_names.append	(b.name)
+			delta_bone_names.append(b.name)
 
 		# getting reference frame number (it is assumed that anim is 1 frame long)
 		ch						= delta_bones[0].channels[0]
@@ -77,7 +86,6 @@ class apply_delta(bpy.types.Operator):
 		for bb in baked_bones:
 			target_bone			= next( filter(lambda x: x.name == bb.name, target_bones) )
 			self.apply_deltas	(bb, reference_frame_id, target_bone, delta_track, target_track, sce)
-
 
 		print					("yay!")
 
@@ -103,7 +111,7 @@ class apply_delta(bpy.types.Operator):
 			for k in ch.keyframe_points:
 				keyframes.add	(int(k.co[0]))
 
-		#print					("keyframes:\n{0}".format(keyframes))
+		#print					("keyframes:{0}".format(keyframes))
 
 		new_mats				= dict()
 		for k in keyframes:
@@ -123,7 +131,7 @@ class apply_delta(bpy.types.Operator):
 				# co[0] -- frame number
 				# co[1] -- value
 				frame			= int(k.co[0])
-				#print			("frame: {0}".format(frame))
+				#print			("bone: {} frame: {} op: {}".format(target_bone.name, frame, op_word))
 				sce.frame_set	(frame)
 
 				new_mat			= new_mats[ frame ]
@@ -131,6 +139,12 @@ class apply_delta(bpy.types.Operator):
 				T				= new_mat.to_translation()
 				Q				= new_mat.to_quaternion()
 				S				= new_mat.to_scale()
+				
+				#tried to cheat on that left handle messup
+				#old_hl			= copy.copy(k.handle_left)
+				#old_hr			= copy.copy(k.handle_right)
+				
+				#print			("old_hl: {} old_hr: {}".format(old_hl, old_hr))
 
 				if "location" == op_word:
 					k.co[1]		= T[ch.array_index]
@@ -138,6 +152,11 @@ class apply_delta(bpy.types.Operator):
 					k.co[1]		= Q[ch.array_index]
 				if "scale" == op_word:
 					k.co[1]		= S[ch.array_index]
+					
+				#k.handle_left	= old_hl
+				#k.handle_right	= old_hr
+				
+				#print			("new_hl: {} new_hr: {}".format(k.handle_left, k.handle_right))
 
 			# curves get messed up
 			ch.update			()
